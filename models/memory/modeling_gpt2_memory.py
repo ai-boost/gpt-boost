@@ -45,7 +45,7 @@ from transformers.modeling_utils import (
     prune_conv1d_layer,
 )
 from transformers.utils import logging
-from models.memory.memory import HashingMemoryProductFast
+from models.memory.memory import HashingMemory
 
 logger = logging.get_logger(__name__)
 
@@ -124,7 +124,7 @@ class Param:
         self.mem_implementation = "pq_fast"
         self.mem_grouped_conv = False
         self.mem_values_optimizer = "adam,lr=0.001"
-        self.mem_sparse = False
+        self.mem_sparse = True
         self.mem_input2d = False
         self.mem_k_dim = 256
         self.mem_v_dim = -1
@@ -159,7 +159,7 @@ class Param:
 
 
 param = Param()
-HashingMemoryProductFast.check_params(param)
+HashingMemory.check_params(param)
 
 
 class Attention(nn.Module):
@@ -316,8 +316,8 @@ class Block(nn.Module):
         if config.add_cross_attention:
             self.crossattention = Attention(hidden_size, n_ctx, config, scale, is_cross_attention=True)
             self.ln_cross_attn = nn.LayerNorm(hidden_size, eps=config.layer_norm_epsilon)
-        self.mlp = MLP(inner_dim, config)
-        self.memory_layer = HashingMemoryProductFast(hidden_size, hidden_size, param)
+        # self.mlp = MLP(inner_dim, config)
+        self.memory_layer = HashingMemory.build(hidden_size, hidden_size, param)
 
     def forward(
             self,
@@ -361,10 +361,11 @@ class Block(nn.Module):
             hidden_states = hidden_states + attn_output
             outputs = outputs + cross_attn_outputs[1:]  # add cross attentions if we output attention weights
 
-        if self.index % 2 == 0:
-            feed_forward_hidden_states = self.mlp(self.ln_2(hidden_states))
-        else:
-            feed_forward_hidden_states = self.memory_layer(self.ln_2(hidden_states))
+        # if self.index % 2 == 0:
+        #     feed_forward_hidden_states = self.mlp(self.ln_2(hidden_states))
+        # else:
+        #     feed_forward_hidden_states = self.memory_layer(self.ln_2(hidden_states))
+        feed_forward_hidden_states = self.memory_layer(self.ln_2(hidden_states))
         # residual connection
         hidden_states = hidden_states + feed_forward_hidden_states
 
@@ -519,7 +520,8 @@ class GPT2Model(GPT2PreTrainedModel):
         self.wte = nn.Embedding(config.vocab_size, config.n_embd)
         self.wpe = nn.Embedding(config.n_positions, config.n_embd)
         self.drop = nn.Dropout(config.embd_pdrop)
-        self.h = nn.ModuleList([Block(config.n_ctx, config, scale=True, index=_index) for _index in range(config.n_layer)])
+        self.h = nn.ModuleList(
+            [Block(config.n_ctx, config, scale=True, index=_index) for _index in range(config.n_layer)])
         self.ln_f = nn.LayerNorm(config.n_embd, eps=config.layer_norm_epsilon)
 
         self.init_weights()
