@@ -1,11 +1,13 @@
 from transformers import Trainer, TrainingArguments
-from transformers import TextDataset, DataCollatorForLanguageModeling
+from transformers import DataCollatorForLanguageModeling
 from transformers import GPT2LMHeadModel, GPT2Config, GPT2TokenizerFast
+
+from utils.data_loader import TextDataset
 
 
 def run():
     tb_path = ".\\runs\\novel-gpt-tiny"
-    data_path = "E:\\data\\corpus\\gpt-boost\\novel_1G.txt"
+    data_path = "E:\\data\\corpus\\gpt-boost\\all.txt"
     tokenizer_path = "E:\\data\\models\\tokenizer"
     model_path = "E:\\data\\models\\gpt-boost\\novel-gpt-tiny"
 
@@ -15,7 +17,7 @@ def run():
     n_positions = 256
     vocab_size = 20000
 
-    warmup_steps = 5000
+    warmup_steps = 10000
     learning_rate = 1e-4
     num_train_epochs = 10
     finetuning_mode = False
