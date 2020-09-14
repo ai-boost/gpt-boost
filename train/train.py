@@ -19,8 +19,8 @@ def get_args():
     parser.add_argument("--num_train_epochs", default=10, type=int, help="training epochs")
     parser.add_argument("--save_total_limit", default=3, type=int, help="save total limit")
     parser.add_argument("--finetuning_mode", default=False, type=bool, help="fine tune or pretrain")
-    parser.add_argument("--gradient_accumulation_steps", type=int, help="gradient accumulation steps")
-    parser.add_argument("--per_device_train_batch_size", type=int, help="training batch size per device")
+    parser.add_argument("--gradient_accumulation_steps", default=4, type=int, help="gradient accumulation steps")
+    parser.add_argument("--per_device_train_batch_size", default=4, type=int, help="training batch size per device")
     args = parser.parse_args()
 
     return args
@@ -39,7 +39,7 @@ def run():
         config = GPT2Config.from_pretrained(args.model_config_path)
         model = GPT2LMHeadModel(config=config)
 
-    print("model parameters: ", model.num_parameters(), "\nloading datasets...")
+    print(" model parameters: %s\n model config: %s\n loading datasets..." % (model.num_parameters(), config))
 
     dataset = TextDataset(
         block_size=config.n_positions,
