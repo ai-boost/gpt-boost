@@ -7,7 +7,7 @@ python -m train.train `
 --data_path E:\\data\\corpus\\gpt-boost\\all.txt `
 --training_mode 0 `
 --gradient_accumulation_steps 16 `
---per_device_train_batch_size 8 `
+--per_device_train_batch_size 12 `
 --num_train_epochs 10 `
 --warmup_steps 10000 `
 --learning_rate 1e-4
