@@ -10,4 +10,6 @@ python -m train.train `
 --per_device_train_batch_size 48 `
 --num_train_epochs 10 `
 --warmup_steps 10000 `
+--logging_steps 50 `
+--save_steps 50 `
 --learning_rate 1e-4

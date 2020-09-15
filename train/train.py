@@ -14,6 +14,8 @@ def get_args():
     parser.add_argument("--tokenizer_path", type=str, help="tokenizer path")
     parser.add_argument("--model_config_path", type=str, help="config path")
     parser.add_argument("--data_path", type=str, help="training dataset path")
+    parser.add_argument("--save_steps", default=200, type=int, help="save steps")
+    parser.add_argument("--logging_steps", default=200, type=int, help="logging steps")
     parser.add_argument("--warmup_steps", default=10000, type=int, help="warm up steps")
     parser.add_argument("--learning_rate", default=1e-4, type=float, help="learning rate")
     parser.add_argument("--num_train_epochs", default=10, type=int, help="training epochs")
@@ -60,7 +62,9 @@ def run():
         overwrite_output_dir=True,
         dataloader_drop_last=True,
         output_dir=args.model_path,
+        save_steps=args.save_steps,
         warmup_steps=args.warmup_steps,
+        logging_steps=args.logging_steps,
         learning_rate=args.learning_rate,
         save_total_limit=args.save_total_limit,
         num_train_epochs=args.num_train_epochs,
