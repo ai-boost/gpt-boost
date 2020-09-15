@@ -1,5 +1,6 @@
 import os
 import pickle
+import random
 import time
 
 import torch
@@ -9,7 +10,6 @@ from filelock import FileLock
 
 from transformers import PreTrainedTokenizer
 from transformers import logging
-
 
 logger = logging.get_logger(__name__)
 
@@ -21,11 +21,11 @@ class TextDataset(Dataset):
     """
 
     def __init__(
-        self,
-        tokenizer: PreTrainedTokenizer,
-        file_path: str,
-        block_size: int,
-        overwrite_cache=False,
+            self,
+            tokenizer: PreTrainedTokenizer,
+            file_path: str,
+            block_size: int,
+            overwrite_cache=False,
     ):
         assert os.path.isfile(file_path), f"Input file path {file_path} not found"
 
@@ -77,7 +77,7 @@ class TextDataset(Dataset):
 
                 for i in range(0, len(tokenized_text) - block_size + 1, block_size):  # Truncate in block of block_size
                     self.examples.append(
-                        tokenizer.build_inputs_with_special_tokens(tokenized_text[i : i + block_size])
+                        tokenizer.build_inputs_with_special_tokens(tokenized_text[i: i + block_size])
                     )
                 # Note that we are losing the last truncated example here for the sake of simplicity (no padding)
                 # If your dataset is small, first you should loook for a bigger one :-) and second you
@@ -95,6 +95,48 @@ class TextDataset(Dataset):
 
     def __getitem__(self, i) -> torch.Tensor:
         return torch.tensor(self.examples[i], dtype=torch.long)
+
+
+class TextDatasetRandom(Dataset):
+    """
+    random text dataset, no cache, dynamic tokenize and sample
+    will be fast on loading datasets and slow on training
+    """
+
+    def __init__(
+            self,
+            tokenizer: PreTrainedTokenizer,
+            file_path: str,
+            block_size: int,
+            data_num=1000000,
+            pad_id=1,
+    ):
+        assert os.path.isfile(file_path), f"Input file path {file_path} not found"
+
+        self.data_num = data_num
+        self.tokenizer = tokenizer
+        self.block_size = block_size - tokenizer.num_special_tokens_to_add(pair=False)
+        self.paragraph_size = 5 * block_size
+        self.pad_id = pad_id
+
+        with open(file_path, encoding="utf-8") as f:
+            self.text = f.read()
+            self.tokens_num = len(self.text)
+            print("tokens number: ", self.tokens_num)
+        self.right_boundary = self.tokens_num - self.paragraph_size
+
+    def __len__(self):
+        return self.data_num
+
+    def __getitem__(self, i) -> torch.Tensor:
+        pos = random.randint(0, self.right_boundary)
+        ids = self.tokenizer.convert_tokens_to_ids(
+            self.tokenizer.tokenize(self.text[pos:pos + self.paragraph_size]))
+
+        while len(ids) < self.block_size:
+            ids.append(self.pad_id)
+        ids = self.tokenizer.build_inputs_with_special_tokens(ids[:self.block_size])
+        return torch.tensor(ids, dtype=torch.long)
 
 
 class LineByLineTextDataset(Dataset):
@@ -130,11 +172,11 @@ class TextDatasetForNextSentencePrediction(Dataset):
     """
 
     def __init__(
-        self,
-        tokenizer: PreTrainedTokenizer,
-        file_path: str,
-        block_size: int,
-        overwrite_cache=False,
+            self,
+            tokenizer: PreTrainedTokenizer,
+            file_path: str,
+            block_size: int,
+            overwrite_cache=False,
     ):
         assert os.path.isfile(file_path), f"Input file path {file_path} not found"
 
