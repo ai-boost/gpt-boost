@@ -124,7 +124,7 @@ class Param:
         self.mem_implementation = "pq_fast"
         self.mem_grouped_conv = False
         self.mem_values_optimizer = "adam,lr=0.001"
-        self.mem_sparse = True
+        self.mem_sparse = False
         self.mem_input2d = False
         self.mem_k_dim = 256
         self.mem_v_dim = -1

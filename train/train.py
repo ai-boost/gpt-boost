@@ -2,8 +2,9 @@ import argparse
 
 from transformers import Trainer, TrainingArguments
 from transformers import DataCollatorForLanguageModeling
-from transformers import GPT2LMHeadModel, GPT2Config, GPT2TokenizerFast
+from transformers import GPT2Config, GPT2TokenizerFast
 
+from models.memory.modeling_gpt2_memory import GPT2LMHeadModel
 from utils.data_loader import TextDataset
 
 
